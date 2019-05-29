@@ -67,23 +67,20 @@ elsif($mod eq 'a'){
 	system("ip link add $VETH0 type veth peer name $VPEER");
 	system("ip link set $VPEER netns $NS");
 	for(my $i=2;$i<$count;$i++){
-		system("ip link add $VETHX".$i." type veth");
-		system("ip link set $VETHX".$i." netns $NS");
+		system("ip netns exec $NS ip link add $VETHX".$i." type veth");
 	}
 	
 	print"Assigning IPs\n";
-	system("ifconfig $VETH0 $VETH0_ADDR");
+	system("ip addr add $VETH0_ADDR dev $VETH0");
 	system("ip netns exec $NS ip link set lo up");
-	system("ip netns exec $NS ifconfig $VPEER $VPEER_ADDR");
+	system("ip netns exec $NS ip addr add $VPEER_ADDR dev $VPEER");
 	system("ip netns exec $NS ip link set $VPEER up");
 	my $copie=$VETHX_ADDR->copy();
 	for(my $i=2;$i<$count;$i++){
-		system("ip netns exec $NS ifconfig $VETHX".$i." $copie");
+		system("ip netns exec $NS ip addr add $copie dev $VETHX".$i);
 		system("ip netns exec $NS ip link set $VETHX".$i." up");
 		$copie++;
 	}
-        system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
-
 
 	print "Enable IP-Frowarding\n";
 	system("echo 1 > /proc/sys/net/ipv4/ip_forward");
@@ -94,9 +91,10 @@ elsif($mod eq 'a'){
 	system("iptables -t nat -F");
 
 	print "Enable MASQUERADING ON $VETH0\n";
-	system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
-	system("iptables -A FORWARD -i $INTERFACE -o ".$VETH0_ADDR->addr." -j ACCEPT");
+    system("iptables -A FORWARD -i $INTERFACE -o ".$VETH0_ADDR->addr." -j ACCEPT");
 	system("iptables -A FORWARD -o $INTERFACE -i ".$VETH0_ADDR->addr." -j ACCEPT");
+	system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
+    system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
 
 	$pid[0]=TWebServer::start_server($VETH0_ADDR->addr);
 	print "PID code: $pid[0]\n";
