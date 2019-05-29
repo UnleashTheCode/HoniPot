@@ -1,5 +1,4 @@
 # HoniPot
-Perl honeypot.
 <br>
 <img src="help.png">
 
