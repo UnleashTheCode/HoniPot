@@ -1,3 +1,6 @@
+#!/usr/bin/perl -I./Modules
+
+
 #HoniPot
 #This app is for impoving your home network security. Honipot is an honeypot scripted in perl.
 #Copyright (C) <2019> <Teodor-Andrei Dan>
@@ -15,8 +18,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-#!/usr/bin/perl -I./Modules
 
 use strict;
 use warnings;
