@@ -1,6 +1,6 @@
 # HoniPot
 <br>
-<img src="help.png">
+<img src="README/help.png">
 
 <h2>About app</h2>
 <p>This app is for impoving your home network security. Honipot is an honeypot scripted in perl.</p>
