@@ -1,3 +1,7 @@
+#by Teodor-Andrei Dan
+#bachelor degree project
+
+
 #!/usr/bin/perl -I./Modules
 
 use strict;
