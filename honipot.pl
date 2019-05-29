@@ -60,7 +60,7 @@ elsif($mod eq 'a'){
 	if(! -e "/etc/netns/$NS/resolv.conf"){
 		system("mkdir -p /etc/netns/$NS");
 		system("touch /etc/netns/$NS/resolv.conf");
-		system("echo 'nameserver 8.8.8.8' > /etc/netns/$NS/resolv.conf");
+		system("echo 'nameserver 1.1.1.1' > /etc/netns/$NS/resolv.conf");
 	}
 	
 	print "Creating Virtual eths and moving them to $NS namespace\n";
