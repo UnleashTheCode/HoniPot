@@ -19,5 +19,7 @@
   <li>Perl packages:<ul><li>NetAddr::IP
                         <li>CGI
                         <li>HTTP::Server::Simple::CGI
+                        <li>Net::SMTP::Server
+                        <li>Net::DNS
     </ul>
 </ul>

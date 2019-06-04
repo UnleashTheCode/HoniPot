@@ -21,7 +21,6 @@ use warnings;
 
 
 use CGI;
-use NetAddr::IP;
 
 {
 package Server;

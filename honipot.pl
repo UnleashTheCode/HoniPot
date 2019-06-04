@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use NetAddr::IP;
 use TWebServer;
+use TSMTPServer;
 use Getopt::Long;
 
 
@@ -44,6 +45,7 @@ sub checkroot{
         my $VPEER_ADDR=new NetAddr::IP '192.168.1.21/24';
         my $VETHX_ADDR=new NetAddr::IP '192.168.1.22/24';
 	my @adresses;
+	my @adresses_addr;
 	my @pid;
 
 GetOptions("mod=s" => \$mod,
@@ -93,6 +95,7 @@ elsif($mod eq 'a'){
 	foreach (@adresses){
 		system("ip netns exec $NS ip addr add $copie dev $_");
 		system("ip netns exec $NS ip link set $_ up");
+		push @adresses_addr,$copie;
 		$copie++;	
 	}
 
@@ -110,8 +113,13 @@ elsif($mod eq 'a'){
 	system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
     system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
 
-	$pid[0]=TWebServer::start_server($VETH0_ADDR->addr);
-	print "PID code: $pid[0]\n";
+	foreach (@adresses_addr){
+    	
+		TWebServer::start_server($_->addr);
+		TSMTPServer::start_server($_->addr);
+	
+		print "PID code: $pid[0]\n";
+	}
 
 }
 
