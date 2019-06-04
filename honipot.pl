@@ -23,18 +23,17 @@ use strict;
 use warnings;
 use NetAddr::IP;
 use TWebServer;
+use Getopt::Long;
 
-my $mod=$ARGV[0] or die system("lolcat -F 0.5 Modules/logo;\ echo Use perl licenta.pl h for more details.");
-my $delete;
-if(defined $ARGV[1]){
-	$delete=$ARGV[1];
-}
+
 
 sub checkroot{
 	if($> != 0){
 		die "Must be root";
 	}
 }
+	my $help;
+	undef my $mod;
 	my $count=11;
         my $NS="Fake";
         my $INTERFACE="wlp3s0";
@@ -44,12 +43,26 @@ sub checkroot{
         my $VETH0_ADDR=new NetAddr::IP '192.168.1.20/24';
         my $VPEER_ADDR=new NetAddr::IP '192.168.1.21/24';
         my $VETHX_ADDR=new NetAddr::IP '192.168.1.22/24';
+	my @adresses;
 	my @pid;
 
-if($mod eq 'h'){
+GetOptions("mod=s" => \$mod,
+	"count=i" => \$count, #number of fake interfaces
+	"ns|namespace=s" => \$NS, #Namespace name
+	"interface=s" => \$INTERFACE,
+	"h" => \$help)
+	or die system("lolcat -F 0.5 Modules/logo;\ echo Use perl licenta.pl --h for more details.");
+
+
+
+if($help or ! defined $mod){
 	die system("lolcat -F 0.5 Modules/logo;\ echo Use:;
-	echo perl lic.perl a to create all things
-	echo perl lic.perl d to delete all the things; echo");
+	echo perl lic.perl --mod a to create all things
+	echo perl lic.perl --mod d to delete all the things
+	echo Optional:
+	echo --count INT number of interfaces
+	echo --ns or --namespace STR the namespace name
+	echo --interface STR name of interface using;echo");
 }
 elsif($mod eq 'a'){
 
@@ -68,6 +81,7 @@ elsif($mod eq 'a'){
 	system("ip link set $VPEER netns $NS");
 	for(my $i=2;$i<$count;$i++){
 		system("ip netns exec $NS ip link add $VETHX".$i." type veth");
+		push @adresses , join('',$VETHX,$i);
 	}
 	
 	print"Assigning IPs\n";
@@ -76,10 +90,10 @@ elsif($mod eq 'a'){
 	system("ip netns exec $NS ip addr add $VPEER_ADDR dev $VPEER");
 	system("ip netns exec $NS ip link set $VPEER up");
 	my $copie=$VETHX_ADDR->copy();
-	for(my $i=2;$i<$count;$i++){
-		system("ip netns exec $NS ip addr add $copie dev $VETHX".$i);
-		system("ip netns exec $NS ip link set $VETHX".$i." up");
-		$copie++;
+	foreach (@adresses){
+		system("ip netns exec $NS ip addr add $copie dev $_");
+		system("ip netns exec $NS ip link set $_ up");
+		$copie++;	
 	}
 
 	print "Enable IP-Frowarding\n";
@@ -107,10 +121,8 @@ elsif($mod eq 'd'){
 	system("lolcat -F 0.5 Modules/logo;\ echo");
 	print "Deleting IPs\n";
 	system("ip netns exec $NS ip link del $VPEER");
-	my $copie=$VETHX_ADDR->copy();
-        for(my $i=2;$i<$count;$i++){
-                system("ip netns exec $NS ip link del $VETHX".$i);
-                $copie++;
+        foreach (@adresses){
+                system("ip netns exec $NS ip link del $_");
         }
 	print "Deleting $NS namespace\n";
 	system("ip netns del $NS &>/dev/null");
@@ -118,9 +130,7 @@ elsif($mod eq 'd'){
 	system("iptables -P FORWARD DROP");
 	system("iptables -F FORWARD");
 	system("iptables -t nat -F");
-	if(defined $delete){
-		kill $delete;
-	}
+
 	print "Yuhuuu goodbye!\n";
 }
 else{
