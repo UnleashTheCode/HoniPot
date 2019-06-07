@@ -22,10 +22,9 @@
 use strict;
 use warnings;
 use NetAddr::IP;
-use TWebServer;
 use TSMTPServer;
 use Getopt::Long;
-
+use Storable;
 
 
 sub checkroot{
@@ -48,6 +47,14 @@ sub checkroot{
 	my @adresses_addr;
 	my @pid;
 
+	if ( -e "adresses"){
+        my @adresses=@{retrieve 'adresses'};
+        }
+        
+	if ( -e "pids"){
+        my @pid=@{retrieve 'pids'};
+        }
+        
 GetOptions("mod=s" => \$mod,
 	"count=i" => \$count, #number of fake interfaces
 	"ns|namespace=s" => \$NS, #Namespace name
@@ -81,10 +88,18 @@ elsif($mod eq 'a'){
 	print "Creating Virtual eths and moving them to $NS namespace\n";
 	system("ip link add $VETH0 type veth peer name $VPEER");
 	system("ip link set $VPEER netns $NS");
-	for(my $i=2;$i<$count;$i++){
-		system("ip netns exec $NS ip link add $VETHX".$i." type veth");
-		push @adresses , join('',$VETHX,$i);
-	}
+	if(!@adresses){
+        for(my $i=2;$i<$count;$i++){
+            system("ip netns exec $NS ip link add $VETHX".$i." type veth");
+            push @adresses , join('',$VETHX,$i);
+        }
+        store \@adresses,'adresses';
+    }
+    else{
+        foreach (@adresses){
+            system("ip link add $_ type veth");
+            }
+        }
 	
 	print"Assigning IPs\n";
 	system("ip addr add $VETH0_ADDR dev $VETH0");
@@ -93,11 +108,12 @@ elsif($mod eq 'a'){
 	system("ip netns exec $NS ip link set $VPEER up");
 	my $copie=$VETHX_ADDR->copy();
 	foreach (@adresses){
-		system("ip netns exec $NS ip addr add $copie dev $_");
-		system("ip netns exec $NS ip link set $_ up");
-		push @adresses_addr,$copie;
-		$copie++;	
-	}
+		#if(!defined@adresses_addr){
+            system("ip netns exec $NS ip addr add $copie dev $_");
+            system("ip netns exec $NS ip link set $_ up");
+            push @adresses_addr,$copie;
+            $copie++;	
+        }
 
 	print "Enable IP-Frowarding\n";
 	system("echo 1 > /proc/sys/net/ipv4/ip_forward");
@@ -112,15 +128,13 @@ elsif($mod eq 'a'){
 	system("iptables -A FORWARD -o $INTERFACE -i ".$VETH0_ADDR->addr." -j ACCEPT");
 	system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
     system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
-
+    
 	foreach (@adresses_addr){
-    	
-		TWebServer::start_server($_->addr);
-		TSMTPServer::start_server($_->addr);
-	
-		print "PID code: $pid[0]\n";
+    	undef my $pid;
+		system("ip netns exec Fake perl Modules/TWebServer.pl $_");
+		#TSMTPServer::start_server($_->addr);
 	}
-
+    store \@pid,'pids';
 }
 
 elsif($mod eq 'd'){
@@ -129,9 +143,22 @@ elsif($mod eq 'd'){
 	system("lolcat -F 0.5 Modules/logo;\ echo");
 	print "Deleting IPs\n";
 	system("ip netns exec $NS ip link del $VPEER");
+    if(@adresses){
         foreach (@adresses){
-                system("ip netns exec $NS ip link del $_");
+            system("ip netns exec $NS ip link del $_");
         }
+    }
+    else
+    {
+        for(my $i=2;$i<$count;$i++){
+                system("ip netns exec $NS ip link del $VETHX".$i);
+            }
+    }
+    if(@pid){
+        foreach (@pid){
+            kill $_;
+        }
+    }
 	print "Deleting $NS namespace\n";
 	system("ip netns del $NS &>/dev/null");
 	print "Final step\n";

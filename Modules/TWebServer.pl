@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 #HoniPot
 #This app is for impoving your home network security. Honipot is an honeypot scripted in perl.
 #Copyright (C) <2019> <Teodor-Andrei Dan>
@@ -14,12 +15,8 @@
 
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-package TWebServer;
 use strict;
 use warnings;
-
-
 use CGI;
 
 {
@@ -68,6 +65,7 @@ sub resp_hello {
 	  $cgi->end_html;
 	}
 }
+
 sub start_server{
 
 my $ADDR = shift;
@@ -75,8 +73,20 @@ my $server = Server->new();
 
 $server->setup(port => 80,8080);
 $server->host($ADDR);
-$server->background();
+my $pid =$server->background();
 
+return $pid
 }
 
-1;
+use Storable;
+use NetAddr::IP;
+
+my @pid;
+if ( -e "./pids"){
+        my @pid=@{retrieve 'pids'};
+        }
+
+my $ip =new NetAddr::IP shift;
+my $i = start_server($ip->addr);
+push @pid,$i;
+store \@pid,'./pids';
