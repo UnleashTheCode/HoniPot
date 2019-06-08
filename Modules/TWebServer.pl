@@ -24,22 +24,43 @@ package Server;
 
 use HTTP::Server::Simple::CGI;
 use base qw(HTTP::Server::Simple::CGI);
+use Data::Dumper;
 
-my @values;
 
 my %dispatch = (
     '/hello' => \&resp_hello,
     # ...
 );
  
+sub headers {
+    my( $self, $headers ) = @_;
+    if( $headers ){
+        $self->{__last_headers} = { @$headers };
+    }
+    return $self->{__last_headers};
+}
+
 sub handle_request {
+
     my $self = shift;
     my $cgi  = shift;
-   
+    my $header = $self->headers();
     my $path = $cgi->path_info();
     my $handler = $dispatch{$path};
-
-
+    
+    if(! -e "./Logs"){
+        system("mkdir ./Logs");
+        }
+    if(! -e "./Logs/".$self->lookup_localhost){
+        system("touch ./Logs/".$self->lookup_localhost);
+        }
+    my $filename = "./Logs/".$self->lookup_localhost;
+    open(FILE, '>>', $filename ) or die $!;
+    my $dump = Data::Dumper->Dump([$header], [qw($header)]);
+    print FILE "Potential threat: $ENV{REMOTE_ADDR}\n";
+    print FILE $dump;
+    close FILE;
+    
     if (ref($handler) eq "CODE") {
         print "HTTP/1.0 200 OK\r\n";
         $handler->($cgi);
@@ -75,18 +96,18 @@ $server->setup(port => 80,8080);
 $server->host($ADDR);
 my $pid =$server->background();
 
-return $pid
+return ($pid,$server)
 }
 
 use Storable;
 use NetAddr::IP;
+	
 
 my @pid;
+my $ip = new NetAddr::IP shift;
 if ( -e "./pids"){
         my @pid=@{retrieve 'pids'};
         }
-
-my $ip =new NetAddr::IP shift;
-my $i = start_server($ip->addr);
-push @pid,$i;
+my ($pi,$serv) = start_server($ip->addr);
+push @pid,$pi;
 store \@pid,'./pids';

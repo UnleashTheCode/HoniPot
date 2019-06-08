@@ -131,11 +131,9 @@ elsif($mod eq 'a'){
 	system("iptables -A FORWARD -o $INTERFACE -i $VETH0 -j ACCEPT");
     
 	foreach (@adresses_addr){
-    	undef my $pid;
-		system("ip netns exec Fake perl Modules/TWebServer.pl $_");
+		system("ip netns exec Fake perl Modules/TWebServer.pl ".$_->addr);
 		#TSMTPServer::start_server($_->addr);
 	}
-    store \@pid,'pids';
 }
 
 elsif($mod eq 'd'){
