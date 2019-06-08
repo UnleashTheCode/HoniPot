@@ -103,9 +103,11 @@ elsif($mod eq 'a'){
 	
 	print"Assigning IPs\n";
 	system("ip addr add $VETH0_ADDR dev $VETH0");
+    system("ip link set $VETH0 up");
 	system("ip netns exec $NS ip link set lo up");
 	system("ip netns exec $NS ip addr add $VPEER_ADDR dev $VPEER");
 	system("ip netns exec $NS ip link set $VPEER up");
+    system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
 	my $copie=$VETHX_ADDR->copy();
 	foreach (@adresses){
 		#if(!defined@adresses_addr){
@@ -124,10 +126,9 @@ elsif($mod eq 'a'){
 	system("iptables -t nat -F");
 
 	print "Enable MASQUERADING ON $VETH0\n";
-    system("iptables -A FORWARD -i $INTERFACE -o ".$VETH0_ADDR->addr." -j ACCEPT");
-	system("iptables -A FORWARD -o $INTERFACE -i ".$VETH0_ADDR->addr." -j ACCEPT");
-	system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
-    system("ip netns exec $NS ip route add default via ".$VETH0_ADDR->addr);
+    system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
+    system("iptables -A FORWARD -i $INTERFACE -o $VETH0 -j ACCEPT");
+	system("iptables -A FORWARD -o $INTERFACE -i $VETH0 -j ACCEPT");
     
 	foreach (@adresses_addr){
     	undef my $pid;
