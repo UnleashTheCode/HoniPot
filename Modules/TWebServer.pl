@@ -58,6 +58,7 @@ sub handle_request {
     open(FILE, '>>', $filename ) or die $!;
     my $dump = Data::Dumper->Dump([$header], [qw($header)]);
     print FILE "Potential threat: $ENV{REMOTE_ADDR}\n";
+    print FILE "Path accesed: ".$path."\n";
     print FILE $dump;
     close FILE;
     
@@ -101,7 +102,6 @@ return ($pid,$server)
 
 use Storable;
 use NetAddr::IP;
-	
 
 my @pid;
 my $ip = new NetAddr::IP shift;

@@ -45,6 +45,7 @@ sub checkroot{
         my $VETHX_ADDR=new NetAddr::IP '192.168.1.22/24';
 	my @adresses;
 	my @adresses_addr;
+	push @adresses_addr,$VPEER_ADDR;
 	my @pid;
 
 	if ( -e "adresses"){
