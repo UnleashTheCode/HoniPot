@@ -15,13 +15,11 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package TSMTPServer;
 use strict;
 use warnings;
 use Net::SMTP::Server;
-use Net::SMTP::Server::Client;
-use Net::SMTP::Server::Relay;
- 
+use NetAddr::IP;
+
  sub start_server{
     my $ADDR = shift;
     my $server = new Net::SMTP::Server($ADDR, 25) ||
@@ -36,4 +34,5 @@ use Net::SMTP::Server::Relay;
                                             $client->{MSG});
     }
  }
-1;
+ my $ip = new NetAddr::IP shift;
+ start_server($ip->addr);

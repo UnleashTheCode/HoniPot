@@ -22,7 +22,6 @@
 use strict;
 use warnings;
 use NetAddr::IP;
-use TSMTPServer;
 use Getopt::Long;
 use Storable;
 
@@ -133,7 +132,7 @@ elsif($mod eq 'a'){
     
 	foreach (@adresses_addr){
 		system("ip netns exec Fake perl Modules/TWebServer.pl ".$_->addr);
-		#TSMTPServer::start_server($_->addr);
+		system("ip netns exec Fake perl Modules/TSMTPServer.pl ".$_->addr."&");
 	}
 }
 
