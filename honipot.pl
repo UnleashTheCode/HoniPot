@@ -120,11 +120,6 @@ elsif($mod eq 'a'){
 	print "Enable IP-Frowarding\n";
 	system("echo 1 > /proc/sys/net/ipv4/ip_forward");
 
-	print "Flush forward and nat rules\n";
-	system("iptables -P FORWARD DROP");
-	system("iptables -F FORWARD");
-	system("iptables -t nat -F");
-
 	print "Enable MASQUERADING ON $VETH0\n";
     system("iptables -t nat -A POSTROUTING -s $VETH0_ADDR -o $INTERFACE -j MASQUERADE");
     system("iptables -A FORWARD -i $INTERFACE -o $VETH0 -j ACCEPT");
@@ -158,13 +153,10 @@ elsif($mod eq 'd'){
             kill $_;
         }
     }
+	print "Final step\n";
 	print "Deleting $NS namespace\n";
 	system("ip netns del $NS &>/dev/null");
-	print "Final step\n";
-	system("iptables -P FORWARD DROP");
-	system("iptables -F FORWARD");
-	system("iptables -t nat -F");
-
+	
 	print "Yuhuuu goodbye!\n";
 }
 else{
