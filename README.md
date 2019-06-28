@@ -16,10 +16,12 @@
 <h2>Requierments</h2>
 <ul><li>perl5 (tested on perl5.28.2)
   <li>lolcat
-  <li>Perl packages:<ul><li>NetAddr::IP
-                        <li>CGI
-                        <li>HTTP::Server::Simple::CGI
-                        <li>Net::SMTP::Server
-                        <li>Net::DNS
+  <li>Perl packages:<ul><li>NetAddr::IP;
+                        <li>CGI;
+                        <li>HTTP::Server::Simple::CGI;
+                        <li>Net::SMTP::Server;
+                        <li>Net::DNS;
+                        <li>Getopt::Long;
+                        <li>Storable;
     </ul>
 </ul>
