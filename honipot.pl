@@ -129,6 +129,7 @@ elsif($mod eq 'a'){
 		system("ip netns exec Fake perl Modules/TWebServer.pl ".$_->addr);
 		system("ip netns exec Fake perl Modules/TSMTPServer.pl ".$_->addr."&");
 	}
+	print "\n";
 }
 
 elsif($mod eq 'd'){
@@ -157,7 +158,7 @@ elsif($mod eq 'd'){
 	print "Deleting $NS namespace\n";
 	system("ip netns del $NS &>/dev/null");
 	
-	print "Yuhuuu goodbye!\n";
+	print "Yuhuuu goodbye!\n\n";
 }
 else{
 	die "IDK something is fcked up\n";

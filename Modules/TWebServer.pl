@@ -29,7 +29,7 @@ use Data::Dumper;
 
 my %dispatch = (
     '/hello' => \&resp_hello,
-    # ...
+    '/ip' => \&resp_ip,
 );
  
 sub headers {
@@ -47,7 +47,7 @@ sub handle_request {
     my $header = $self->headers();
     my $path = $cgi->path_info();
     my $handler = $dispatch{$path};
-    
+
     if(! -e "./Logs"){
         system("mkdir ./Logs");
         }
@@ -69,8 +69,8 @@ sub handle_request {
     } else {
         print "HTTP/1.0 404 Not found\r\n";
         print $cgi->header,
-              $cgi->start_html('Not found'),
-              $cgi->h1('Not found'),
+              $cgi->start_html('Ups'),
+              $cgi->h1('You accesed the wrong path.'),
               $cgi->end_html;
     }
 }
@@ -82,11 +82,22 @@ sub resp_hello {
     my $who = $cgi->param('name');
      
     print $cgi->header,
-          $cgi->start_html("Hello $who title"),
+          $cgi->start_html("Hello $who"),
           $cgi->h1("Hello $who!"),
+	      $cgi->end_html;
+	}
+
+sub resp_ip {
+    my $cgi  = shift;   # CGI.pm object
+    return if !ref $cgi;
+    print $cgi->header,
+          $cgi->start_html("Hello here is your IP");
+          print("Your IP is: $ENV{REMOTE_ADDR}\n");
 	  $cgi->end_html;
 	}
+
 }
+
 
 sub start_server{
 
